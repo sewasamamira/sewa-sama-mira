@@ -1,0 +1,412 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: API specification for Penyewaan Pompa ASI
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: rentals
+    description: Rental operations
+  - name: equipment
+    description: Equipment operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /rentals:
+    get:
+      operationId: listRentals
+      tags: [rentals]
+      summary: List all rentals
+      responses:
+        "200":
+          description: List of rentals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rental"
+    post:
+      operationId: createRental
+      tags: [rentals]
+      summary: Create a new rental
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RentalInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rental"
+        "400":
+          description: Bad request
+
+  /rentals/{id}:
+    get:
+      operationId: getRental
+      tags: [rentals]
+      summary: Get a rental by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rental detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rental"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateRental
+      tags: [rentals]
+      summary: Update a rental
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RentalUpdate"
+      responses:
+        "200":
+          description: Updated rental
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rental"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteRental
+      tags: [rentals]
+      summary: Delete a rental
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /rentals/stats/summary:
+    get:
+      operationId: getRentalStats
+      tags: [rentals]
+      summary: Get rental statistics summary
+      responses:
+        "200":
+          description: Rental stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalStats"
+
+  /equipment:
+    get:
+      operationId: listEquipment
+      tags: [equipment]
+      summary: List all equipment
+      responses:
+        "200":
+          description: List of equipment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Equipment"
+    post:
+      operationId: createEquipment
+      tags: [equipment]
+      summary: Create equipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+
+  /equipment/{id}/rentals:
+    get:
+      operationId: getEquipmentRentals
+      tags: [equipment]
+      summary: Get rental history for a specific equipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of rentals for this equipment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rental"
+        "404":
+          description: Not found
+
+  /equipment/{id}:
+    patch:
+      operationId: updateEquipment
+      tags: [equipment]
+      summary: Update equipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentUpdate"
+      responses:
+        "200":
+          description: Updated equipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteEquipment
+      tags: [equipment]
+      summary: Delete equipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Equipment:
+      type: object
+      required: [id, name, price7day, price14day, price30day, available]
+      properties:
+        id:
+          type: integer
+        unitNumber:
+          type: ["integer", "null"]
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        price7day:
+          type: number
+        price14day:
+          type: number
+        price30day:
+          type: number
+        available:
+          type: boolean
+        createdAt:
+          type: string
+
+    EquipmentInput:
+      type: object
+      required: [name, price7day, price14day, price30day]
+      properties:
+        unitNumber:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price7day:
+          type: number
+        price14day:
+          type: number
+        price30day:
+          type: number
+        available:
+          type: boolean
+
+    EquipmentUpdate:
+      type: object
+      properties:
+        unitNumber:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price7day:
+          type: number
+        price14day:
+          type: number
+        price30day:
+          type: number
+        available:
+          type: boolean
+
+    Rental:
+      type: object
+      required: [id, renterName, phoneNumber, address, equipmentId, equipmentName, durationDays, totalPrice, status, startDate, endDate, createdAt]
+      properties:
+        id:
+          type: integer
+        renterName:
+          type: string
+        phoneNumber:
+          type: string
+        address:
+          type: string
+        equipmentId:
+          type: integer
+        equipmentName:
+          type: string
+        durationDays:
+          type: integer
+          enum: [7, 14, 30]
+        totalPrice:
+          type: number
+        status:
+          type: string
+          enum: [active, returned, overdue]
+        startDate:
+          type: string
+        endDate:
+          type: string
+        notes:
+          type: ["string", "null"]
+        returnedAt:
+          type: ["string", "null"]
+        extensionHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              extendedAt:
+                type: string
+              previousEndDate:
+                type: string
+              previousDurationDays:
+                type: integer
+              previousTotalPrice:
+                type: number
+              addedDays:
+                type: integer
+              addedPrice:
+                type: number
+        createdAt:
+          type: string
+
+    RentalInput:
+      type: object
+      required: [renterName, phoneNumber, address, equipmentId, durationDays, startDate]
+      properties:
+        renterName:
+          type: string
+        phoneNumber:
+          type: string
+        address:
+          type: string
+        equipmentId:
+          type: integer
+        durationDays:
+          type: integer
+          enum: [7, 14, 30]
+        startDate:
+          type: string
+        notes:
+          type: string
+
+    RentalUpdate:
+      type: object
+      properties:
+        renterName:
+          type: string
+        phoneNumber:
+          type: string
+        address:
+          type: string
+        status:
+          type: string
+          enum: [active, returned, overdue]
+        notes:
+          type: string
+        extensionDays:
+          type: integer
+          enum: [7, 14, 30]
+          description: Number of days to extend the rental from current end date
+        returnedAt:
+          type: string
+          description: ISO date string of actual return date
+
+    RentalStats:
+      type: object
+      required: [totalRentals, activeRentals, returnedRentals, overdueRentals, totalRevenue]
+      properties:
+        totalRentals:
+          type: integer
+        activeRentals:
+          type: integer
+        returnedRentals:
+          type: integer
+        overdueRentals:
+          type: integer
+        totalRevenue:
+          type: number
